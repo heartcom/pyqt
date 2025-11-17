@@ -1,0 +1,89 @@
+/* static/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fafafa;
+}
+
+.container {
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 24px 32px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.desc {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 24px;
+}
+
+/* 입력 행 공통 */
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+/* 색깔 별 배경 */
+.red-row {
+    background-color: #ffe1e1;
+}
+
+.green-row {
+    background-color: #e1ffe4;
+}
+
+.blue-row {
+    background-color: #e1e7ff;
+}
+
+label {
+    font-weight: bold;
+    margin-right: 12px;
+    flex: 1;
+    text-align: left;
+}
+
+/* 숫자 입력 상자 공통 스타일 */
+input[type="number"] {
+    width: 120px;
+    padding: 6px 8px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: right;
+    box-sizing: border-box;
+}
+
+/* 전송 버튼 영역 */
+.btn-area {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-area button {
+    width: 200px;
+    height: 44px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 1px solid #777;
+    cursor: pointer;
+    background-color: #f0f0f0;
+}
+
+.btn-area button:hover {
+    background-color: #e0e0e0;
+}

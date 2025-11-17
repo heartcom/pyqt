@@ -1,0 +1,74 @@
+
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>RGB LED PWM Control</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>RGB LED PWM Control</h1>
+        <p class="desc">
+            슬라이더를 움직여 R/G/B 밝기(0~100%)를 설정한 후 전송 버튼을 누르세요.
+        </p>
+
+        <form method="post" action="{{ url_for('set_rgb') }}" class="rgb-form">
+            <!-- RED -->
+            <div class="row red-row">
+                <label for="r">RED</label>
+                <input type="range"
+                       id="r" name="r"
+                       min="0" max="100" step="1"
+                       value="{{ r_value }}"
+                       oninput="updateValue('r', this.value)">
+                <span class="value-label" id="value-r">{{ r_value }}</span>
+            </div>
+
+            <!-- GREEN -->
+            <div class="row green-row">
+                <label for="g">GREEN</label>
+                <input type="range"
+                       id="g" name="g"
+                       min="0" max="100" step="1"
+                       value="{{ g_value }}"
+                       oninput="updateValue('g', this.value)">
+                <span class="value-label" id="value-g">{{ g_value }}</span>
+            </div>
+
+            <!-- BLUE -->
+            <div class="row blue-row">
+                <label for="b">BLUE</label>
+                <input type="range"
+                       id="b" name="b"
+                       min="0" max="100" step="1"
+                       value="{{ b_value }}"
+                       oninput="updateValue('b', this.value)">
+                <span class="value-label" id="value-b">{{ b_value }}</span>
+            </div>
+
+            <div class="btn-area">
+                <button type="submit">전송 (Send)</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function updateValue(channel, val) {
+            const label = document.getElementById('value-' + channel);
+            if (label) {
+                label.textContent = val;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const r = document.getElementById('r');
+            const g = document.getElementById('g');
+            const b = document.getElementById('b');
+            if (r) updateValue('r', r.value);
+            if (g) updateValue('g', g.value);
+            if (b) updateValue('b', b.value);
+        });
+    </script>
+</body>
+</html>

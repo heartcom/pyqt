@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>RGB LED Control</title>
+    <!-- static/style.css 사용 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>RGB LED Control</h1>
+    <p>RED: GPIO 23, GREEN: GPIO 22, BLUE: GPIO 21</p>
+
+    <div class="btn-group">
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="red">
+            <input type="hidden" name="state" value="on">
+            <button class="red on" type="submit">RED ON</button>
+        </form>
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="red">
+            <input type="hidden" name="state" value="off">
+            <button class="red off" type="submit">RED OFF</button>
+        </form>
+    </div>
+
+    <div class="btn-group">
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="green">
+            <input type="hidden" name="state" value="on">
+            <button class="green on" type="submit">GREEN ON</button>
+        </form>
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="green">
+            <input type="hidden" name="state" value="off">
+            <button class="green off" type="submit">GREEN OFF</button>
+        </form>
+    </div>
+
+    <div class="btn-group">
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="blue">
+            <input type="hidden" name="state" value="on">
+            <button class="blue on" type="submit">BLUE ON</button>
+        </form>
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="blue">
+            <input type="hidden" name="state" value="off">
+            <button class="blue off" type="submit">BLUE OFF</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <div class="btn-group">
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="all">
+            <input type="hidden" name="state" value="on">
+            <button type="submit">ALL ON</button>
+        </form>
+        <form method="post" action="{{ url_for('led_control') }}">
+            <input type="hidden" name="color" value="all">
+            <input type="hidden" name="state" value="off">
+            <button type="submit">ALL OFF</button>
+        </form>
+    </div>
+</body>
+</html>

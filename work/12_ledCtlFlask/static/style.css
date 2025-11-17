@@ -1,0 +1,57 @@
+/* static/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 40px;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+/* 각 색상별 ON/OFF 두 개를 가로로 나란히 배치 */
+.btn-group {
+    margin: 10px 0;
+    display: flex;              /* 가로 배치 */
+    justify-content: center;    /* 가운데 정렬 */
+    align-items: center;
+    gap: 8px;                   /* 버튼 사이 간격 */
+}
+
+/* form 자체의 margin 제거 (간격은 gap으로만) */
+.btn-group form {
+    margin: 0;
+}
+
+/* 버튼 공통 스타일 – 길이 동일하게 */
+button {
+    /* 모두 동일한 가로/세로 크기 */
+    width: 150px;          /* 폭을 조금 넓게 */
+    height: 48px;
+
+    /* 가운데 정렬을 위한 설정 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 텍스트 줄바꿈 방지 → GREEN OFF 한 줄 유지 */
+    white-space: nowrap;
+
+    /* 나머지 기존 스타일 */
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+
+/* 색깔 지정 */
+.red   { background-color: #ffcccc; }
+.green { background-color: #ccffcc; }
+.blue  { background-color: #ccccff; }
+
+/* ON/OFF 표현 */
+.on  { font-weight: bold; }
+.off { opacity: 0.7; }

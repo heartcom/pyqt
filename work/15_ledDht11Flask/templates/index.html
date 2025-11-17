@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>RGB LED PWM + DHT11 Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- 그래프 그리기용 Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>RGB LED PWM Control</h1>
+        <p class="desc">
+            슬라이더를 움직여 R / G / B 각 채널의 밝기(0~100%)를 설정한 후 전송 버튼을 누르세요.
+        </p>
+
+        <!-- RGB PWM 슬라이더 -->
+        <form id="rgb-form" class="rgb-form" onsubmit="sendRgb(event)">
+            <!-- RED -->
+            <div class="row red-row">
+                <label for="r">RED</label>
+                <input type="range"
+                       id="r" name="r"
+                       min="0" max="100" step="1"
+                       value="{{ r_value }}"
+                       oninput="updateValue('r', this.value)">
+                <span class="value-label" id="value-r">{{ r_value }}</span>
+            </div>
+
+            <!-- GREEN -->
+            <div class="row green-row">
+                <label for="g">GREEN</label>
+                <input type="range"
+                       id="g" name="g"
+                       min="0" max="100" step="1"
+                       value="{{ g_value }}"
+                       oninput="updateValue('g', this.value)">
+                <span class="value-label" id="value-g">{{ g_value }}</span>
+            </div>
+
+            <!-- BLUE -->
+            <div class="row blue-row">
+                <label for="b">BLUE</label>
+                <input type="range"
+                       id="b" name="b"
+                       min="0" max="100" step="1"
+                       value="{{ b_value }}"
+                       oninput="updateValue('b', this.value)">
+                <span class="value-label" id="value-b">{{ b_value }}</span>
+            </div>
+
+            <div class="btn-area">
+                <button type="submit">전송 (Send)</button>
+            </div>
+        </form>
+
+        <hr class="section-divider">
+
+        <!-- DHT11 구간 -->
+        <section id="dht-section">
+            <h2>DHT11 Temperature / Humidity</h2>
+            <p class="desc">
+                ESP32에서 전송되는 DHT11 온도·습도 값을 주기적으로 읽어 그래프로 표시합니다.
+            </p>
+
+            <canvas id="dhtChart"></canvas>
+
+            <div id="dht-values">
+                <span>Temperature: <strong id="temp-value">--</strong> °C</span>
+                <span class="sep">|</span>
+                <span>Humidity: <strong id="humi-value">--</strong> %</span>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ===== PWM 슬라이더 값 숫자 표시 =====
+        function updateValue(channel, val) {
+            const label = document.getElementById('value-' + channel);
+            if (label) {
+                label.textContent = val;
+            }
+        }
+
+        // ===== LED PWM 값 전송 (Ajax) =====
+        function sendRgb(event) {
+            event.preventDefault(); // 폼 기본 동작(페이지 리로드) 막기
+
+            const r = document.getElementById('r').value;
+            const g = document.getElementById('g').value;
+            const b = document.getElementById('b').value;
+
+            fetch('{{ url_for("api_set_rgb") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    r: Number(r),
+                    g: Number(g),
+                    b: Number(b)
+                })
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (!data.ok) {
+                    console.warn('LED set error:', data.error);
+                    alert('LED 설정 중 오류가 발생했습니다: ' + data.error);
+                } else {
+                    console.log('LED set OK:', data);
+                }
+            })
+            .catch(err => {
+                console.error('LED fetch error:', err);
+                alert('LED 설정 통신 오류가 발생했습니다.');
+            });
+        }
+
+        // ===== DHT11 차트 설정 =====
+        let dhtChart = null;
+        const maxPoints = 30;  // 그래프에 보이는 최대 데이터 개수
+
+        function initDhtChart() {
+            const ctx = document.getElementById('dhtChart').getContext('2d');
+            dhtChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Temperature (°C)',
+                            data: [],
+                            yAxisID: 'yTemp',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Humidity (%)',
+                            data: [],
+                            yAxisID: 'yHumi',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    animation: false,
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time' }
+                        },
+                        yTemp: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: '°C' }
+                        },
+                        yHumi: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: '%' },
+                            min: 0,
+                            max: 100,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function addDhtPoint(tsLabel, temp, humi) {
+            if (!dhtChart) return;
+
+            const labels = dhtChart.data.labels;
+            const tempData = dhtChart.data.datasets[0].data;
+            const humiData = dhtChart.data.datasets[1].data;
+
+            labels.push(tsLabel);
+            tempData.push(temp);
+            humiData.push(humi);
+
+            if (labels.length > maxPoints) {
+                labels.shift();
+                tempData.shift();
+                humiData.shift();
+            }
+
+            dhtChart.update();
+        }
+
+        // 서버에서 DHT11 값 읽어오는 함수
+        function pollDht() {
+            fetch('{{ url_for("api_dht11") }}')
+                .then(resp => resp.json())
+                .then(data => {
+                    if (!data.ok) {
+                        console.warn('DHT11 read error:', data.error);
+                        return;
+                    }
+
+                    const temp = data.temp;
+                    const humi = data.humi;
+                    const tsLabel = new Date(data.ts * 1000).toLocaleTimeString();
+
+                    // 숫자 표시 업데이트
+                    document.getElementById('temp-value').textContent = temp.toFixed(1);
+                    document.getElementById('humi-value').textContent = humi.toFixed(1);
+
+                    // 그래프에 포인트 추가
+                    addDhtPoint(tsLabel, temp, humi);
+                })
+                .catch(err => {
+                    console.error('DHT11 fetch failed:', err);
+                });
+        }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('DOMContentLoaded', () => {
+            // 슬라이더 초기 숫자 표시
+            const r = document.getElementById('r');
+            const g = document.getElementById('g');
+            const b = document.getElementById('b');
+            if (r) updateValue('r', r.value);
+            if (g) updateValue('g', g.value);
+            if (b) updateValue('b', b.value);
+
+            // DHT11 그래프 & 주기적 폴링
+            initDhtChart();
+            pollDht();                  // 처음 한 번
+            setInterval(pollDht, 2000); // 2초마다 최신 값 가져오기
+        });
+    </script>
+</body>
+</html>
