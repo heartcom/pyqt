@@ -1,0 +1,137 @@
+/* static/style.css */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0f1115;
+  color: #eaeaea;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px 24px 32px;
+  background: #181a1f;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9ca0a8;
+  margin-bottom: 24px;
+}
+
+/* LED 버튼 */
+
+.led-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.led-btn {
+  padding: 10px 32px;
+  border-radius: 999px;
+  border: none;
+  background: #4d4f58;
+  color: #f7f7f7;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6);
+  transition: background 0.18s ease, transform 0.1s ease,
+    box-shadow 0.18s ease;
+}
+
+.led-btn.on.red {
+  background: #e53935;
+}
+.led-btn.on.green {
+  background: #43a047;
+}
+.led-btn.on.blue {
+  background: #1e88e5;
+}
+
+.led-btn:not(.on) {
+  background: #50535d;
+}
+
+.led-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* 현재 값 테이블 */
+
+.values {
+  margin-bottom: 24px;
+}
+
+.values table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.values th,
+.values td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid #30333b;
+}
+
+.values th {
+  background: #20232a;
+  font-weight: 600;
+}
+
+/* 그래프 영역 */
+/* 그래프 영역 */
+
+.charts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* 2열 고정 = 2x2 */
+  gap: 16px;
+  margin-top: 8px;
+}
+
+/* 화면이 아주 좁을 때(모바일 등)만 1열로 내려가게 */
+@media (max-width: 900px) {
+  .charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: #14161b;
+  border-radius: 14px;
+  padding: 10px;
+  border: 1px solid #292c33;
+  height: 260px;                            /* 카드 높이 고정 */
+}
+
+.chart-card h3 {
+  font-size: 0.95rem;
+  margin: 4px 0 6px;
+  text-align: center;
+}
+
+/* 캔버스가 카드 영역을 꽉 쓰도록 */
+.chart-card canvas {
+  width: 100% !important;
+  height: calc(100% - 24px) !important;     /* 제목 높이만큼 빼기 */
+}
+

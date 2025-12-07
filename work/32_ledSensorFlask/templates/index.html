@@ -1,0 +1,245 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>LED Sensor Flask Monitor</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>LED &amp; Sensor Monitor</h1>
+      <div class="subtitle">
+        PyQt 센서 클라이언트 ↔ Flask 서버 (TCP 60010) 실시간 모니터링
+      </div>
+
+      <!-- LED 제어 버튼 -->
+      <div class="led-row">
+        <button
+          class="led-btn red {% if led_states.red %}on{% endif %}"
+          data-color="red"
+        >
+          RED
+        </button>
+        <button
+          class="led-btn green {% if led_states.green %}on{% endif %}"
+          data-color="green"
+        >
+          GREEN
+        </button>
+        <button
+          class="led-btn blue {% if led_states.blue %}on{% endif %}"
+          data-color="blue"
+        >
+          BLUE
+        </button>
+      </div>
+
+      <!-- 현재 값 표시 -->
+      <div class="values">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>온도 (°C)</td>
+              <td id="val-temp">
+                {% if latest.temp is not none %}{{ "%.1f"|format(latest.temp)
+                }}{% else %}-{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>습도 (%)</td>
+              <td id="val-humi">
+                {% if latest.humi is not none %}{{ "%.1f"|format(latest.humi)
+                }}{% else %}-{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>NH₃ (ppm)</td>
+              <td id="val-nh3">
+                {% if latest.nh3 is not none %}{{ "%.1f"|format(latest.nh3)
+                }}{% else %}-{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>H₂S (ppm)</td>
+              <td id="val-h2s">
+                {% if latest.h2s is not none %}{{ "%.1f"|format(latest.h2s)
+                }}{% else %}-{% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 그래프 -->
+      <div class="charts">
+        <div class="chart-card">
+          <h3>온도 (°C)</h3>
+          <canvas id="tempChart" height="150"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>습도 (%)</h3>
+          <canvas id="humiChart" height="150"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>NH₃ (ppm)</h3>
+          <canvas id="nh3Chart" height="150"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>H₂S (ppm)</h3>
+          <canvas id="h2sChart" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ----- LED 버튼 제어 -----
+      const ledButtons = document.querySelectorAll(".led-btn");
+
+      ledButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const color = btn.dataset.color;
+          fetch(`/toggle_led/${color}`, { method: "POST" })
+            .then((r) => r.json())
+            .then((data) => {
+              if (!data.ok) return;
+              const states = data.led_states;
+              ["red", "green", "blue"].forEach((c) => {
+                const b = document.querySelector(`.led-btn.${c}`);
+                if (!b) return;
+                if (states[c]) b.classList.add("on");
+                else b.classList.remove("on");
+              });
+            })
+            .catch((err) => console.error(err));
+        });
+      });
+
+      // ----- Chart.js 설정 -----
+      function createLineChart(ctx, label) {
+        return new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: label,
+                data: [],
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                ticks: {
+                  maxRotation: 0,
+                  autoSkip: true,
+                  maxTicksLimit: 6,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const tempChart = createLineChart(
+        document.getElementById("tempChart").getContext("2d"),
+        "Temp"
+      );
+      const humiChart = createLineChart(
+        document.getElementById("humiChart").getContext("2d"),
+        "Humi"
+      );
+      const nh3Chart = createLineChart(
+        document.getElementById("nh3Chart").getContext("2d"),
+        "NH3"
+      );
+      const h2sChart = createLineChart(
+        document.getElementById("h2sChart").getContext("2d"),
+        "H2S"
+      );
+
+      // ----- 주기적으로 데이터 폴링 -----
+      function updateFromServer() {
+        fetch("/data")
+          .then((r) => r.json())
+          .then((d) => {
+            // 현재 값
+            if (d.latest.temp != null) {
+              document.getElementById("val-temp").textContent =
+                d.latest.temp.toFixed(1);
+            } else {
+              document.getElementById("val-temp").textContent = "-";
+            }
+
+            if (d.latest.humi != null) {
+              document.getElementById("val-humi").textContent =
+                d.latest.humi.toFixed(1);
+            } else {
+              document.getElementById("val-humi").textContent = "-";
+            }
+
+            if (d.latest.nh3 != null) {
+              document.getElementById("val-nh3").textContent =
+                d.latest.nh3.toFixed(1);
+            } else {
+              document.getElementById("val-nh3").textContent = "-";
+            }
+
+            if (d.latest.h2s != null) {
+              document.getElementById("val-h2s").textContent =
+                d.latest.h2s.toFixed(1);
+            } else {
+              document.getElementById("val-h2s").textContent = "-";
+            }
+
+            // LED 상태 동기화 (TCP 송신이 실패했을 수도 있으므로)
+            const states = d.led_states || {};
+            ["red", "green", "blue"].forEach((c) => {
+              const b = document.querySelector(`.led-btn.${c}`);
+              if (!b) return;
+              if (states[c]) b.classList.add("on");
+              else b.classList.remove("on");
+            });
+
+            // 그래프 데이터
+            tempChart.data.labels = d.time;
+            tempChart.data.datasets[0].data = d.temp;
+            tempChart.update();
+
+            humiChart.data.labels = d.time;
+            humiChart.data.datasets[0].data = d.humi;
+            humiChart.update();
+
+            nh3Chart.data.labels = d.time;
+            nh3Chart.data.datasets[0].data = d.nh3;
+            nh3Chart.update();
+
+            h2sChart.data.labels = d.time;
+            h2sChart.data.datasets[0].data = d.h2s;
+            h2sChart.update();
+          })
+          .catch((err) => console.error(err));
+      }
+
+      // 1초마다 데이터 갱신
+      setInterval(updateFromServer, 1000);
+      updateFromServer();
+    </script>
+  </body>
+</html>
